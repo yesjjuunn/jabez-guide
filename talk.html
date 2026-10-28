@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>야베스 나눔 도구</title>
+<meta name="description" content="마을 모임에서 쓰는 나눔 질문 카드">
+<meta property="og:title" content="야베스 나눔 도구">
+<meta property="og:description" content="마을 모임에서 쓰는 나눔 질문 카드">
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+html, body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: one shared question card in the middle; mode tabs above change only how the group uses it. Same tokens as the other 야베스 pages. */
+:root {
+  --bg: #FBF6F2; --surface: #FFFFFF; --sunken: #F5EAE3; --fg: #302C2A; --muted: #766B65; --line: #EADBD2; --accent: #A6523D; --accent-soft: #F1DED5; --accent-ink: #FFFFFF; --warn: #9A5B12; --warn-soft: #F8EBD6; --card: #F1DED5; --card-ink: #302C2A; --card-muted: #766B65;
+  --font-display: "Gowun Dodum", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif; --font-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1B1614; --surface: #241D1A; --sunken: #2C231F; --fg: #F3EAE4; --muted: #BBAAA0; --line: #3D312B; --accent: #E08A6E; --accent-soft: #3A2620; --accent-ink: #1B1614; --warn: #F0B860; --warn-soft: #362812; --card: #33241E; --card-ink: #F3EAE4; --card-muted: #C7B4A9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1B1614; --surface: #241D1A; --sunken: #2C231F; --fg: #F3EAE4; --muted: #BBAAA0; --line: #3D312B; --accent: #E08A6E; --accent-soft: #3A2620; --accent-ink: #1B1614; --warn: #F0B860; --warn-soft: #362812; --card: #33241E; --card-ink: #F3EAE4; --card-muted: #C7B4A9;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); }
+body {
+  color: var(--fg); font-family: var(--font-body); font-size: 15.5px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+header.top { padding-block: 28px 4px; display: flex; flex-direction: column; gap: 2px; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+h1 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(26px, 5.4vw, 32px); line-height: 1.2; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.draft { display: inline-flex; width: fit-content; font-size: 12.5px; font-weight: 600; color: var(--warn); background: var(--warn-soft); padding: 3px 10px; border-radius: 999px; }
+
+.tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--sunken); padding: 4px; border-radius: 12px; gap: 4px; }
+.tabs button { border: 0; background: transparent; padding: 10px 6px; border-radius: 9px; font-weight: 600; font-size: 14px; color: var(--muted); }
+.tabs button[aria-pressed="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(10, 20, 50, .12); }
+.mode-desc { font-size: 14px; color: var(--muted); }
+
+.depth { display: flex; gap: 6px; flex-wrap: wrap; }
+.depth button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 14px; font-size: 14px; font-weight: 500; }
+.depth button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.depth button:disabled { opacity: .45; cursor: default; }
+
+.card { background: var(--card); color: var(--card-ink); border-radius: 28px 96px 28px 28px; padding: 26px 22px; display: flex; flex-direction: column; gap: 18px; min-height: 260px; }
+.card .meta { display: flex; justify-content: space-between; color: var(--card-muted); font-size: 13px; font-weight: 600; }
+.card .meta .num { font-family: var(--font-mono); }
+.card .q { font-family: var(--font-display); font-size: clamp(24px, 5.8vw, 30px); font-weight: 400; line-height: 1.4; text-wrap: balance; flex: 1; display: flex; align-items: center; }
+.card .skip { font-size: 14px; color: var(--card-muted); }
+.turn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 6px 12px; border-radius: 999px; font-size: 14px; width: fit-content; }
+
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 12px 16px; font-weight: 600; font-size: 15px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); flex: 1; }
+
+.steps { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.steps li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border-top: 1px solid var(--line); }
+.steps li:first-child { border-top: 0; }
+.steps .n { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--sunken); font-family: var(--font-mono); font-weight: 600; font-size: 13px; }
+.steps li.now { background: var(--accent-soft); }
+.steps li.now .n { background: var(--accent); color: var(--accent-ink); }
+.steps li.done { color: var(--muted); }
+.steps .min { font-family: var(--font-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.steps .how { display: block; font-size: 13px; color: var(--muted); }
+.timer { font-family: var(--font-mono); font-size: 40px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: center; letter-spacing: .02em; }
+.leader-tip { font-size: 14px; background: var(--surface); border: 1px dashed var(--line); border-radius: 12px; padding: 12px 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back-home" href="index.html" style="display:inline-flex;align-items:center;gap:6px;width:fit-content;margin-top:16px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);text-decoration:none;font-size:14px;font-weight:500;">← 가이드 홈</a>
+  <header class="top">
+    <span class="eyebrow">야베스 새내기 안내 가이드</span>
+    <h1>나눔 도구</h1>
+  </header>
+  <p class="muted">"공부했다, 쉬었다"로 끝나지 않는 대화를 위해 질문을 하나 뽑아 써 보세요. 모든 질문은 답하기 어려우면 건너뛰어도 괜찮아요.</p>
+  <span class="draft">질문 초안 · 리더 검토 전</span>
+
+  <div class="tabs" role="group" aria-label="사용 방식">
+    <button type="button" data-mode="card" aria-pressed="true">질문 카드</button>
+    <button type="button" data-mode="pair" aria-pressed="false">2인 대화</button>
+    <button type="button" data-mode="group" aria-pressed="false">그룹 나눔</button>
+  </div>
+  <p class="mode-desc" id="mode-desc"></p>
+
+  <div class="depth" role="group" aria-label="질문 깊이">
+    <button type="button" data-depth="light" aria-pressed="true">가볍게</button>
+    <button type="button" data-depth="deep" aria-pressed="false">조금 깊게</button>
+    <button type="button" data-depth="faith" disabled title="리더·교역자 검토 후 공개돼요">신앙 나눔 · 검토 중</button>
+  </div>
+
+  <section class="card" aria-live="polite">
+    <div class="meta"><span id="depth-label">가볍게</span><span class="num" id="num"></span></div>
+    <div id="turn-wrap" hidden><span class="turn" id="turn"></span></div>
+    <div class="q" id="question"></div>
+    <div class="skip">정답은 없어요. 답하기 어려우면 건너뛰어도 괜찮아요.</div>
+  </section>
+
+  <div class="actions" id="card-actions">
+    <button type="button" class="btn" id="prev">이전</button>
+    <button type="button" class="btn primary" id="next">다른 질문</button>
+  </div>
+
+  <div id="group-panel" hidden>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="timer" id="timer">01:00</div>
+      <div class="actions">
+        <button type="button" class="btn" id="reset">처음부터</button>
+        <button type="button" class="btn" id="toggle">시작</button>
+        <button type="button" class="btn primary" id="step-next">다음 단계</button>
+      </div>
+      <ol class="steps" id="steps"></ol>
+      <p class="leader-tip"><b>진행하는 사람에게</b> 정답을 말해주기보다 듣는 데 집중해 주세요. 침묵이 길어지면 질문을 바꿔도 괜찮아요.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const QUESTIONS = {
+    light: [
+      '이번 주에 작지만 기분 좋았던 순간은?',
+      '요즘 자주 듣는 노래나 자주 보는 영상은?',
+      '하루가 통째로 비면 가장 하고 싶은 일은?',
+      '최근에 처음 해본 일이 있다면?',
+      '학교나 일터에서 요즘 제일 재밌는 건?',
+      '요즘 나를 웃게 한 장면은?',
+      '자신 있게 추천할 수 있는 맛집이나 장소는?',
+      '이번 주에 가장 바빴던 날과 그 이유는?',
+      '어릴 때 꿈과 지금 관심사는 얼마나 닮았나요?',
+      '요즘 배워보고 싶은 것은?',
+      '주말을 보내는 나만의 방식은?',
+      '여기 있는 사람들이 나에 대해 알면 좋을 한 가지는?'
+    ],
+    deep: [
+      '요즘 가장 많이 고민하는 선택은?',
+      '최근에 나를 지치게 한 일과 다시 힘을 준 일은?',
+      '1년 뒤의 나에게 해주고 싶은 말은?',
+      '요즘 고마운 사람이 있다면 누구이고, 왜인가요?',
+      '내 전공이나 일에서 다른 사람들이 잘 모르는 부분은?',
+      '최근에 생각이 바뀐 일이 있나요?',
+      '요즘 나를 가장 잘 설명하는 단어 하나는?',
+      '다른 학교나 일터에 있는 사람에게 물어보고 싶은 것은?'
+    ],
+    // 신앙 나눔: 리더들이 정한 질문을 여기에 넣으면 버튼이 자동으로 켜져요.
+    faith: [
+    ]
+  };
+  const DEPTH_LABEL = { light: '가볍게', deep: '조금 깊게', faith: '신앙 나눔' };
+  const MODE_DESC = {
+    card: '질문 하나를 골라 자유롭게 써요. 마을 모임 시작할 때 한 장 뽑아 보세요.',
+    pair: '둘이 번갈아 답해요. 한 사람이 답하는 동안 다른 사람은 끝까지 들어 주세요.',
+    group: '15분 동안 혼자 생각하고, 둘이 이야기하고, 넷이 모였다가 다 같이 나눠요.'
+  };
+  const STEPS = [
+    { t: '혼자 생각하기', how: '질문을 읽고 조용히 생각을 정리해요.', min: 1 },
+    { t: '둘이 이야기하기', how: '옆 사람과 번갈아 답해요.', min: 4 },
+    { t: '넷이 모여 나누기', how: '두 쌍이 모여 공통점과 다른 점을 찾아요.', min: 5 },
+    { t: '다 같이 나누기', how: '각 모둠에서 기억에 남은 이야기를 하나씩 말해요.', min: 5 }
+  ];
+
+  const state = { mode: 'card', depth: 'light', order: {}, idx: 0, turn: 0, step: 0, left: STEPS[0].min * 60, running: false };
+  let tick = null;
+
+  function shuffle(n) { const a = [...Array(n).keys()]; for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  function list() { return QUESTIONS[state.depth]; }
+  function current() {
+    if (!state.order[state.depth]) state.order[state.depth] = shuffle(list().length);
+    return list()[state.order[state.depth][state.idx]];
+  }
+  const $ = id => document.getElementById(id);
+  const fmt = s => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+
+  function render() {
+    document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === state.mode));
+    document.querySelectorAll('[data-depth]').forEach(b => b.setAttribute('aria-pressed', b.dataset.depth === state.depth));
+    $('mode-desc').textContent = MODE_DESC[state.mode];
+    $('depth-label').textContent = DEPTH_LABEL[state.depth];
+    $('num').textContent = (state.idx + 1) + ' / ' + list().length;
+    $('question').textContent = current();
+    $('turn-wrap').hidden = state.mode !== 'pair';
+    $('turn').textContent = state.turn === 0 ? '첫 번째 사람 차례' : '두 번째 사람 차례';
+    $('next').textContent = state.mode === 'pair' ? (state.turn === 0 ? '두 번째 사람 차례로' : '다음 질문') : '다른 질문';
+    $('group-panel').hidden = state.mode !== 'group';
+    $('timer').textContent = fmt(state.left);
+    $('toggle').textContent = state.running ? '잠시 멈춤' : '시작';
+    $('step-next').textContent = state.step < STEPS.length - 1 ? '다음 단계' : '마치기';
+    $('steps').innerHTML = STEPS.map((s, i) =>
+      `<li class="${i === state.step ? 'now' : i < state.step ? 'done' : ''}"><span class="n">${i + 1}</span><span>${s.t}<span class="how">${s.how}</span></span><span class="min">${s.min}분</span></li>`).join('');
+  }
+
+  function move(d) {
+    const n = list().length;
+    state.idx = (state.idx + d + n) % n; state.turn = 0; render();
+  }
+  function stop() { state.running = false; clearInterval(tick); tick = null; }
+  function goStep(i) { stop(); state.step = i; state.left = STEPS[i].min * 60; render(); }
+
+  document.addEventListener('click', e => {
+    const m = e.target.closest('[data-mode]'); if (m) { state.mode = m.dataset.mode; state.turn = 0; render(); return; }
+    const d = e.target.closest('[data-depth]'); if (d && !d.disabled) { state.depth = d.dataset.depth; state.idx = 0; state.turn = 0; render(); }
+  });
+  $('next').addEventListener('click', () => {
+    if (state.mode === 'pair' && state.turn === 0) { state.turn = 1; render(); return; }
+    move(1);
+  });
+  $('prev').addEventListener('click', () => move(-1));
+  $('toggle').addEventListener('click', () => {
+    if (state.running) { stop(); render(); return; }
+    state.running = true;
+    tick = setInterval(() => {
+      state.left = Math.max(0, state.left - 1);
+      if (state.left === 0) stop();
+      render();
+    }, 1000);
+    render();
+  });
+  $('step-next').addEventListener('click', () => { if (state.step < STEPS.length - 1) goStep(state.step + 1); else goStep(0); });
+  $('reset').addEventListener('click', () => goStep(0));
+
+  if (QUESTIONS.faith.length) {
+    const fb = document.querySelector('[data-depth="faith"]');
+    fb.disabled = false; fb.removeAttribute('title'); fb.textContent = '신앙 나눔';
+  }
+  render();
+})();
+</script>
+</body>
+</html>

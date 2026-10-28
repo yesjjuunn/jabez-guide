@@ -1,0 +1,1320 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>야베스 시설 찾기</title>
+<meta name="description" content="야베스 예배실과 시설 위치 찾기">
+<meta property="og:title" content="야베스 시설 찾기">
+<meta property="og:description" content="야베스 예배실과 시설 위치 찾기">
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+html, body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: wayfinding app. Search + list on the left, floor plan with an elevator-style floor panel on the right; stacks to one column on phones. */
+:root {
+  --bg: #FBF6F2; --surface: #FFFFFF; --sunken: #F5EAE3; --fg: #302C2A; --muted: #766B65; --line: #EADBD2; --accent: #A6523D; --accent-soft: #F1DED5; --accent-ink: #FFFFFF; --warn: #9A5B12; --warn-soft: #F8EBD6; --ok: #2F7A4B; --ok-soft: #E1F0E5;
+  --font-display: "Gowun Dodum", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif; --font-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace; --radius: 18px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1B1614; --surface: #241D1A; --sunken: #2C231F; --fg: #F3EAE4; --muted: #BBAAA0; --line: #3D312B; --accent: #E08A6E; --accent-soft: #3A2620; --accent-ink: #1B1614; --warn: #F0B860; --warn-soft: #362812; --ok: #7FD39C; --ok-soft: #173023;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1B1614; --surface: #241D1A; --sunken: #2C231F; --fg: #F3EAE4; --muted: #BBAAA0; --line: #3D312B; --accent: #E08A6E; --accent-soft: #3A2620; --accent-ink: #1B1614; --warn: #F0B860; --warn-soft: #362812; --ok: #7FD39C; --ok-soft: #173023;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { background: var(--bg); }
+body {
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+}
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a { color: var(--accent); }
+
+.wrap { max-width: 1120px; margin: 0 auto; }
+
+header.top {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding-block: 28px 20px;
+}
+.brand { display: flex; flex-direction: column; gap: 2px; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+h1 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(22px, 4.6vw, 30px); line-height: 1.25; text-wrap: balance; }
+h1 span { color: var(--accent); }
+
+.layout { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+/* Search column */
+.search-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.search {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 0 14px; height: 52px;
+}
+.search:focus-within { border-color: var(--accent); }
+.search svg { flex: none; color: var(--muted); }
+.search input { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font-size: 16px; height: 100%; }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+.result-meta { font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; }
+.results { list-style: none; margin: 0; padding: 0 4px 0 0; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; overscroll-behavior: contain; }
+@media (min-width: 861px) {
+  .results { max-height: calc(100vh - 230px); }
+  .map-col { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; overscroll-behavior: contain; }
+}
+@media (max-width: 860px) { .results { max-height: 36vh; } }
+.result {
+  width: 100%; text-align: left; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; align-items: center;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+}
+.result:hover { border-color: var(--accent); }
+.result[aria-current="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.floor-badge {
+  width: 48px; height: 48px; border-radius: 10px; display: grid; place-items: center;
+  background: var(--sunken); font-family: var(--font-mono); font-weight: 600; font-size: 15px;
+}
+.result[aria-current="true"] .floor-badge { background: var(--accent); color: var(--accent-ink); }
+.result .name { font-weight: 600; display: block; }
+.result .where { font-size: 13px; color: var(--muted); display: block; }
+.empty { padding: 20px; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 12px; font-size: 14px; }
+
+/* Map column */
+.map-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.selector { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.buildings { display: inline-flex; background: var(--sunken); padding: 4px; border-radius: 999px; gap: 2px; }
+.buildings button {
+  border: 0; background: transparent; padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px; color: var(--muted);
+}
+.buildings button[aria-pressed="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(10, 20, 50, .12); }
+
+.elevator { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.elevator .label { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .06em; }
+.elevator button {
+  width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--surface);
+  font-family: var(--font-mono); font-weight: 600; font-size: 14px; position: relative;
+}
+.elevator button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.elevator button.has-target::after {
+  content: ""; position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+}
+
+.map-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.map-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.map-title { font-weight: 600; }
+.map-title small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.zoom { display: flex; gap: 6px; }
+.zoom button { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; }
+.zoom button:disabled { opacity: .4; cursor: default; }
+
+.viewport {
+  position: relative; overflow: hidden; touch-action: none;
+  background-color: var(--sunken);
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.stage { position: relative; transform-origin: 0 0; }
+.stage img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+.viewport.picking { cursor: crosshair; }
+
+.marker { position: absolute; width: 0; height: 0; pointer-events: none; }
+.marker .dot {
+  position: absolute; left: -11px; top: -11px; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); border: 3px solid var(--surface); box-shadow: 0 2px 8px rgba(10, 20, 60, .35);
+}
+.marker .ring {
+  position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%;
+  border: 2px solid var(--accent); opacity: .6; animation: pulse 1.8s ease-out infinite;
+}
+.marker.draft .dot { background: var(--warn); }
+.marker.draft .ring { border-color: var(--warn); }
+@keyframes pulse { from { transform: scale(.5); opacity: .8; } to { transform: scale(1.4); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .marker .ring { animation: none; } }
+
+.fallback { padding: 36px 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; min-height: 260px; justify-content: center; }
+.fallback .floor-big { font-family: var(--font-mono); font-size: 44px; font-weight: 600; color: var(--accent); line-height: 1; }
+.fallback p { margin: 0; max-width: 40ch; color: var(--muted); font-size: 14px; }
+.fallback .btn-link {
+  display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 10px;
+  background: var(--accent); color: var(--accent-ink); text-decoration: none; font-weight: 600; font-size: 14px;
+}
+
+.floor-list { padding: 12px 14px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.floor-list .label { font-size: 12px; color: var(--muted); font-weight: 600; margin-right: 4px; }
+.chip-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
+.chip-btn[aria-current="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+/* Info panel */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.panel h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 26px; line-height: 1.25; }
+.panel .loc { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; width: fit-content; }
+.status.verified { background: var(--ok-soft); color: var(--ok); }
+.status.floor-only, .status.unverified { background: var(--warn-soft); color: var(--warn); }
+.status.draft { background: var(--warn-soft); color: var(--warn); }
+.status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+dl.facts { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 16px; font-size: 14px; }
+dl.facts dt { color: var(--muted); }
+dl.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.notice { font-size: 13.5px; background: var(--warn-soft); color: var(--fg); padding: 10px 12px; border-radius: 10px; }
+
+/* Admin */
+.admin { background: var(--surface); border: 1px dashed var(--warn); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.admin h3 { margin: 0; font-size: 15px; }
+.admin p { margin: 0; font-size: 13.5px; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 12px; font-size: 14px; font-weight: 500; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.coords { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+textarea#export-box { width: 100%; min-height: 180px; font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: var(--sunken); }
+
+footer.foot { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; font-size: 12.5px; color: var(--muted); }
+footer.foot button { background: none; border: 0; color: var(--muted); text-decoration: underline; padding: 0; font-size: 12.5px; }
+</style>
+</head>
+<body>
+<!-- 시설 데이터: 시설·층을 추가하거나 고칠 때 이 부분만 수정하면 됩니다. -->
+<script type="application/json" id="facility-data">
+{
+ "buildings": [
+  {
+   "id": "main",
+   "name": "본당"
+  },
+  {
+   "id": "edu",
+   "name": "교육관"
+  }
+ ],
+ "floors": [
+  {
+   "id": "main-b1",
+   "buildingId": "main",
+   "label": "B1",
+   "name": "지하 1층",
+   "mapImage": "maps/main-b1.jpg",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-1f",
+   "buildingId": "main",
+   "label": "1F",
+   "name": "1층",
+   "mapImage": "maps/main-1f.jpg",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-2f",
+   "buildingId": "main",
+   "label": "2F",
+   "name": "2층",
+   "mapImage": "maps/main-2f.jpg",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-3f",
+   "buildingId": "main",
+   "label": "3F",
+   "name": "3층",
+   "mapImage": "maps/main-3f.jpg",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-4f",
+   "buildingId": "main",
+   "label": "4F",
+   "name": "4층",
+   "mapImage": "maps/main-4f.jpg",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-5f",
+   "buildingId": "main",
+   "label": "5F",
+   "name": "5층",
+   "mapImage": "maps/main-5f.jpg",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-1f",
+   "buildingId": "edu",
+   "label": "1F",
+   "name": "1층",
+   "mapImage": "maps/edu-1f.jpg",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-2f",
+   "buildingId": "edu",
+   "label": "2F",
+   "name": "2층",
+   "mapImage": "maps/edu-2f.jpg",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-3f",
+   "buildingId": "edu",
+   "label": "3F",
+   "name": "3층",
+   "mapImage": "maps/edu-3f.jpg",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-4f",
+   "buildingId": "edu",
+   "label": "4F",
+   "name": "4층",
+   "mapImage": "maps/edu-4f.jpg",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-5f",
+   "buildingId": "edu",
+   "label": "5F",
+   "name": "5층",
+   "mapImage": "maps/edu-5f.jpg",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-6f",
+   "buildingId": "edu",
+   "label": "6F",
+   "name": "6층",
+   "mapImage": "maps/edu-6f.jpg",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-7f",
+   "buildingId": "edu",
+   "label": "7F",
+   "name": "7층",
+   "mapImage": "maps/edu-7f.jpg",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  }
+ ],
+ "facilities": [
+  {
+   "id": "eunhye-hall",
+   "name": "은혜홀",
+   "aliases": [
+    "야베스 예배",
+    "주일 예배",
+    "청년1팀 예배"
+   ],
+   "buildingId": "main",
+   "floorId": "main-2f",
+   "roomNumber": null,
+   "description": "야베스(청년1팀) 주일 예배 장소예요. 주일 오후 5시.",
+   "mapImage": "maps/main-2f.jpg",
+   "markerXPercent": null,
+   "markerYPercent": null,
+   "verificationStatus": "floor-only",
+   "sourceUrl": "https://www.instagram.com/jabez4910"
+  },
+  {
+   "id": "jeja-hall",
+   "name": "제자홀",
+   "aliases": [
+    "하트기도회",
+    "금요 기도회"
+   ],
+   "buildingId": "edu",
+   "floorId": "edu-7f",
+   "roomNumber": null,
+   "description": "하트기도회 장소예요. 매주 금요일 저녁 7시.",
+   "mapImage": "maps/edu-7f.jpg",
+   "markerXPercent": 76.7,
+   "markerYPercent": 27.5,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "yeolmae-hall",
+   "name": "열매홀",
+   "aliases": [
+    "업드림",
+    "새벽예배",
+    "Up-Dream"
+   ],
+   "buildingId": "edu",
+   "floorId": "edu-6f",
+   "roomNumber": null,
+   "description": "업드림(Up-Dream) 새벽예배 장소예요. 매일 새벽 5시.",
+   "mapImage": "maps/edu-6f.jpg",
+   "markerXPercent": 73.7,
+   "markerYPercent": 24.9,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-6f-체육관",
+   "name": "체육관",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-6f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-6f.jpg",
+   "markerXPercent": 27.9,
+   "markerYPercent": 56.7,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-5f-주기도문홀",
+   "name": "주기도문홀",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-5f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-5f.jpg",
+   "markerXPercent": 74.8,
+   "markerYPercent": 25.3,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-5f-대세미나실",
+   "name": "대세미나실",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-5f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-5f.jpg",
+   "markerXPercent": 32.8,
+   "markerYPercent": 44.2,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-5f-중세미나실",
+   "name": "중세미나실",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-5f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-5f.jpg",
+   "markerXPercent": 19.0,
+   "markerYPercent": 51.9,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-5f-상담국",
+   "name": "상담국",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-5f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-5f.jpg",
+   "markerXPercent": 9.7,
+   "markerYPercent": 58.6,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-5f-선교국",
+   "name": "선교국",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-5f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-5f.jpg",
+   "markerXPercent": 45.3,
+   "markerYPercent": 60.4,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-5f-소세미나실",
+   "name": "소세미나실",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-5f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-5f.jpg",
+   "markerXPercent": 14.8,
+   "markerYPercent": 81.0,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-4f-사도신경홀",
+   "name": "사도신경홀",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-4f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-4f.jpg",
+   "markerXPercent": 73.2,
+   "markerYPercent": 24.8,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-4f-대세미나실",
+   "name": "대세미나실",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-4f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-4f.jpg",
+   "markerXPercent": 32.8,
+   "markerYPercent": 44.8,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-4f-다목적연습실",
+   "name": "다목적연습실",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-4f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-4f.jpg",
+   "markerXPercent": 19.1,
+   "markerYPercent": 53.0,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-4f-대학청년부",
+   "name": "대학/청년부",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-4f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-4f.jpg",
+   "markerXPercent": 39.2,
+   "markerYPercent": 64.6,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "sipgyemyeong-hall",
+   "name": "십계명홀",
+   "aliases": [
+    "새내기 학교",
+    "이륙기 학교",
+    "사랑모임"
+   ],
+   "buildingId": "edu",
+   "floorId": "edu-3f",
+   "roomNumber": null,
+   "description": "작년 새내기 학교(사랑모임)가 주일 오후 3시에 모인 곳이에요.",
+   "mapImage": "maps/edu-3f.jpg",
+   "markerXPercent": 73.7,
+   "markerYPercent": 24.5,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-3f-대세미나실",
+   "name": "대세미나실",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-3f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-3f.jpg",
+   "markerXPercent": 33.3,
+   "markerYPercent": 43.4,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-3f-중세미나실",
+   "name": "중세미나실",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-3f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-3f.jpg",
+   "markerXPercent": 18.9,
+   "markerYPercent": 52.3,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-3f-교육국사무실",
+   "name": "교육국 사무실",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-3f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-3f.jpg",
+   "markerXPercent": 33.9,
+   "markerYPercent": 68.1,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "changjo-hall",
+   "name": "창조홀",
+   "aliases": [
+    "유치부실",
+    "리트릿"
+   ],
+   "buildingId": "edu",
+   "floorId": "edu-2f",
+   "roomNumber": null,
+   "description": "작년 새내기 1팀 리트릿이 열린 곳이에요.",
+   "mapImage": "maps/edu-2f.jpg",
+   "markerXPercent": 74.7,
+   "markerYPercent": 24.2,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-2f-유아부실",
+   "name": "유아부실",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-2f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-2f.jpg",
+   "markerXPercent": 25.4,
+   "markerYPercent": 47.2,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-2f-소세미나실",
+   "name": "소세미나실",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-2f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-2f.jpg",
+   "markerXPercent": 25.3,
+   "markerYPercent": 74.0,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-1f-북카페",
+   "name": "북카페",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-1f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-1f.jpg",
+   "markerXPercent": 73.5,
+   "markerYPercent": 24.2,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "edu-1f-소모임실",
+   "name": "소모임실",
+   "aliases": [],
+   "buildingId": "edu",
+   "floorId": "edu-1f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/edu-1f.jpg",
+   "markerXPercent": 29.2,
+   "markerYPercent": 52.0,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-b1-사랑부실",
+   "name": "사랑부실",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-b1",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-b1.jpg",
+   "markerXPercent": 32.5,
+   "markerYPercent": 18.5,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-b1-사랑홀",
+   "name": "사랑홀",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-b1",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-b1.jpg",
+   "markerXPercent": 66.9,
+   "markerYPercent": 23.6,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-b1-희락홀",
+   "name": "희락홀",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-b1",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-b1.jpg",
+   "markerXPercent": 27.4,
+   "markerYPercent": 68.4,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-1f-영아부실",
+   "name": "영아부실",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-1f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-1f.jpg",
+   "markerXPercent": 33.8,
+   "markerYPercent": 16.7,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-office",
+   "name": "교회 사무실",
+   "aliases": [
+    "사무실",
+    "본당 사무실",
+    "장학회"
+   ],
+   "buildingId": "main",
+   "floorId": "main-1f",
+   "roomNumber": null,
+   "description": "교회 사무실이에요. 수영로교회장학회 서류 접수처도 이곳이었어요.",
+   "mapImage": "maps/main-1f.jpg",
+   "markerXPercent": 49.1,
+   "markerYPercent": 17.6,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-1f-평강홀",
+   "name": "평강홀",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-1f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-1f.jpg",
+   "markerXPercent": 67.9,
+   "markerYPercent": 17.2,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-1f-찬양대실",
+   "name": "찬양대실",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-1f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-1f.jpg",
+   "markerXPercent": 78.9,
+   "markerYPercent": 41.1,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-1f-세미나실",
+   "name": "세미나실",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-1f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-1f.jpg",
+   "markerXPercent": 33.4,
+   "markerYPercent": 51.4,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-2f-새가족실",
+   "name": "새가족실",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-2f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-2f.jpg",
+   "markerXPercent": 26.8,
+   "markerYPercent": 14.8,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-2f-안내준비실",
+   "name": "안내준비실",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-2f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-2f.jpg",
+   "markerXPercent": 76.1,
+   "markerYPercent": 57.7,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-3f-301호",
+   "name": "301호",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-3f",
+   "roomNumber": "301",
+   "description": "",
+   "mapImage": "maps/main-3f.jpg",
+   "markerXPercent": 25.9,
+   "markerYPercent": 6.6,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-3f-기관사역실",
+   "name": "기관사역실",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-3f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-3f.jpg",
+   "markerXPercent": 18.9,
+   "markerYPercent": 17.0,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-3f-303호",
+   "name": "303호",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-3f",
+   "roomNumber": "303",
+   "description": "",
+   "mapImage": "maps/main-3f.jpg",
+   "markerXPercent": 16.9,
+   "markerYPercent": 25.3,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-3f-304호",
+   "name": "304호",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-3f",
+   "roomNumber": "304",
+   "description": "",
+   "mapImage": "maps/main-3f.jpg",
+   "markerXPercent": 9.8,
+   "markerYPercent": 50.5,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-3f-306호",
+   "name": "306호",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-3f",
+   "roomNumber": "306",
+   "description": "",
+   "mapImage": "maps/main-3f.jpg",
+   "markerXPercent": 30.6,
+   "markerYPercent": 82.8,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-4f-402호",
+   "name": "402호",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-4f",
+   "roomNumber": "402",
+   "description": "",
+   "mapImage": "maps/main-4f.jpg",
+   "markerXPercent": 18.5,
+   "markerYPercent": 15.8,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-4f-양육국",
+   "name": "양육국",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-4f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-4f.jpg",
+   "markerXPercent": 18.7,
+   "markerYPercent": 24.8,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-4f-교구사무실",
+   "name": "교구사무실",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-4f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-4f.jpg",
+   "markerXPercent": 22.9,
+   "markerYPercent": 68.6,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-5f-행정실",
+   "name": "행정실",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-5f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-5f.jpg",
+   "markerXPercent": 21.7,
+   "markerYPercent": 60.2,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-5f-비서실",
+   "name": "비서실",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-5f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-5f.jpg",
+   "markerXPercent": 24.4,
+   "markerYPercent": 65.7,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-5f-홍보실",
+   "name": "홍보실",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-5f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-5f.jpg",
+   "markerXPercent": 27.4,
+   "markerYPercent": 71.3,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  },
+  {
+   "id": "main-5f-방송실",
+   "name": "방송실",
+   "aliases": [],
+   "buildingId": "main",
+   "floorId": "main-5f",
+   "roomNumber": null,
+   "description": "",
+   "mapImage": "maps/main-5f.jpg",
+   "markerXPercent": 74.8,
+   "markerYPercent": 71.3,
+   "verificationStatus": "verified",
+   "sourceUrl": "https://www.sooyoungro.org/main/new-layout/syrguide/facilities.jsp"
+  }
+ ]
+}
+</script>
+
+<div class="wrap">
+  <a class="back-home" href="index.html" style="display:inline-flex;align-items:center;gap:6px;width:fit-content;margin-top:16px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);text-decoration:none;font-size:14px;font-weight:500;">← 가이드 홈</a>
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">수영로교회 청년1팀 JABEZ</span>
+      <h1>야베스 새내기 안내 가이드 <span>· 시설 찾기</span></h1>
+    </div>
+  </header>
+
+  <div class="layout">
+    <section class="search-col" aria-label="장소 검색">
+      <label class="search" for="q">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        <input id="q" type="search" placeholder="예배실 이름, 호수, 모임 이름" autocomplete="off" aria-label="장소 검색">
+      </label>
+      <p class="hint">예: 은혜홀, 새벽예배, 하트기도회, 7층</p>
+      <div class="result-meta"><span id="result-count"></span></div>
+      <ul class="results" id="results"></ul>
+    </section>
+
+    <section class="map-col" aria-label="도면">
+      <div class="selector">
+        <div class="buildings" id="buildings" role="group" aria-label="건물 선택"></div>
+        <div class="elevator" id="floors" role="group" aria-label="층 선택"></div>
+      </div>
+
+      <div class="map-card">
+        <div class="map-head">
+          <div class="map-title" id="map-title"></div>
+          <div class="zoom">
+            <button type="button" id="zoom-out" aria-label="축소">−</button>
+            <button type="button" id="zoom-reset" aria-label="원래 크기">⟲</button>
+            <button type="button" id="zoom-in" aria-label="확대">+</button>
+          </div>
+        </div>
+        <div id="map-area"></div>
+        <div class="floor-list" id="floor-list"></div>
+      </div>
+
+      <article class="panel" id="panel" aria-live="polite"></article>
+
+      <section class="admin" id="admin" hidden>
+        <h3>관리자 모드 · 핀 위치 찍기</h3>
+        <p>시설을 고른 뒤 도면에서 실제 위치를 누르면 임시 핀이 찍혀요. 좌표는 이 기기에만 저장되고, 아래 '데이터 내보내기'로 복사해 전달하면 확정 데이터에 반영할 수 있어요.</p>
+        <div class="row">
+          <span class="coords" id="pick-coords">선택한 좌표 없음</span>
+        </div>
+        <div class="row">
+          <button type="button" class="btn" id="clear-draft">이 시설 임시 핀 지우기</button>
+          <label class="btn" for="local-image">이 층 도면 파일 불러오기</label>
+          <input type="file" id="local-image" accept="image/*" hidden>
+          <button type="button" class="btn primary" id="export">데이터 내보내기</button>
+        </div>
+        <div id="export-wrap" hidden>
+          <textarea id="export-box" readonly></textarea>
+          <div class="row">
+            <button type="button" class="btn primary" id="copy-export">복사</button>
+            <span class="hint" id="copy-msg"></span>
+          </div>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <footer class="foot">
+    <span>도면 출처: 수영로교회 홈페이지 시설안내 · 핀 위치는 직접 확인한 곳만 표시돼요.</span>
+    <button type="button" id="admin-toggle">관리자 모드 켜기</button>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('facility-data').textContent);
+  const DRAFT_KEY = 'jabez-guide-pin-drafts';
+
+  const STATUS = {
+    'verified': '도면에서 위치 확인됨',
+    'floor-only': '층 확인 · 도면 위치 확인 전',
+    'draft': '임시 핀 · 검증 필요',
+    'unverified': '미확인'
+  };
+
+  const state = {
+    buildingId: 'main',
+    floorId: 'main-2f',
+    facilityId: 'eunhye-hall',
+    query: '',
+    admin: false,
+    drafts: loadDrafts(),
+    localImages: {},
+    failedImages: {},
+    lastPick: null
+  };
+  let pz = null;
+
+  function loadDrafts() {
+    try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}') || {}; } catch (e) { return {}; }
+  }
+  function saveDrafts() {
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(state.drafts)); } catch (e) { /* 저장 불가 환경 */ }
+  }
+
+  const byId = (list, id) => list.find(x => x.id === id);
+  const building = id => byId(DATA.buildings, id);
+  const floor = id => byId(DATA.floors, id);
+  const floorsOf = bId => DATA.floors.filter(f => f.buildingId === bId);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const norm = s => String(s || '').toLowerCase().replace(/\s+/g, '');
+
+  function facility(id) {
+    const f = byId(DATA.facilities, id);
+    if (!f) return null;
+    const d = state.drafts[id];
+    if (d && (f.markerXPercent == null)) return Object.assign({}, f, { markerXPercent: d.x, markerYPercent: d.y, verificationStatus: 'draft' });
+    return f;
+  }
+  const hasPin = f => f && f.markerXPercent != null && f.markerYPercent != null;
+
+  function search(q) {
+    const n = norm(q);
+    const all = DATA.facilities.map(f => facility(f.id));
+    if (!n) return all;
+    return all.filter(f => {
+      const fl = floor(f.floorId) || {};
+      const b = building(f.buildingId) || {};
+      const hay = [f.name, f.roomNumber, ...(f.aliases || []), b.name, fl.name, fl.label, (b.name || '') + (fl.name || '')].map(norm).join('|');
+      return hay.includes(n);
+    });
+  }
+
+  /* ---------- 렌더 ---------- */
+  function renderResults() {
+    const list = search(state.query);
+    document.getElementById('result-count').textContent = state.query ? `검색 결과 ${list.length}곳` : `등록된 시설 ${list.length}곳`;
+    const ul = document.getElementById('results');
+    if (!list.length) {
+      ul.innerHTML = `<li class="empty">'${esc(state.query)}'에 맞는 시설이 아직 없어요.<br>다른 이름이나 층으로 검색해 보세요.</li>`;
+      return;
+    }
+    ul.innerHTML = list.map(f => {
+      const fl = floor(f.floorId) || {}; const b = building(f.buildingId) || {};
+      return `<li><button type="button" class="result" data-id="${esc(f.id)}" aria-current="${f.id === state.facilityId}">
+        <span class="floor-badge">${esc(fl.label || '?')}</span>
+        <span><span class="name">${esc(f.name)}${f.roomNumber ? ' · ' + esc(f.roomNumber) + '호' : ''}</span>
+        <span class="where">${esc(b.name)} ${esc(fl.name)}</span></span>
+      </button></li>`;
+    }).join('');
+  }
+
+  function renderBuildings() {
+    document.getElementById('buildings').innerHTML = DATA.buildings.map(b =>
+      `<button type="button" data-building="${esc(b.id)}" aria-pressed="${b.id === state.buildingId}">${esc(b.name)}</button>`).join('');
+  }
+
+  function renderFloors() {
+    const target = facility(state.facilityId);
+    const fls = floorsOf(state.buildingId).slice().reverse();
+    document.getElementById('floors').innerHTML = `<span class="label">층</span>` + fls.map(f =>
+      `<button type="button" data-floor="${esc(f.id)}" aria-pressed="${f.id === state.floorId}" aria-label="${esc(f.name)}"
+        class="${target && target.floorId === f.id ? 'has-target' : ''}">${esc(f.label)}</button>`).join('');
+  }
+
+  function renderMap() {
+    const fl = floor(state.floorId);
+    const b = building(state.buildingId);
+    document.getElementById('map-title').innerHTML = `${esc(b.name)} ${esc(fl.name)}<small>${fl.mapImage || state.localImages[fl.id] ? '확대·이동 가능' : '도면 준비 중'}</small>`;
+    const area = document.getElementById('map-area');
+    const src = state.localImages[fl.id] || (state.failedImages[fl.id] ? null : fl.mapImage);
+    if (pz) { try { pz.destroy(); } catch (e) {} pz = null; }
+
+    if (!src) {
+      const officialLink = fl.mapImage
+        ? `<a class="btn-link" href="${esc(fl.mapImage)}" target="_blank" rel="noopener">공식 도면 새 탭에서 보기 ↗</a>`
+        : '';
+      const msg = fl.mapImage
+        ? '이 화면에서는 공식 도면을 불러오지 못했어요. 아래 버튼으로 공식 도면을 열어 위치를 확인해 주세요.'
+        : '이 층은 아직 도면이 없어요. 아래 목록에서 이 층에 있는 시설을 확인할 수 있어요.';
+      area.innerHTML = `<div class="viewport"><div class="fallback">
+        <div class="floor-big">${esc(fl.label)}</div>
+        <p>${msg}</p>${officialLink}</div></div>`;
+      setZoomEnabled(false);
+      return;
+    }
+
+    const f = facility(state.facilityId);
+    const showPin = f && f.floorId === fl.id && hasPin(f);
+    area.innerHTML = `<div class="viewport${state.admin ? ' picking' : ''}" id="viewport">
+      <div class="stage" id="stage">
+        <img id="map-img" src="${esc(src)}" alt="${esc(b.name)} ${esc(fl.name)} 층별 안내도" draggable="false">
+        ${showPin ? `<div class="marker${f.verificationStatus === 'draft' ? ' draft' : ''}" style="left:${f.markerXPercent}%;top:${f.markerYPercent}%"><span class="ring"></span><span class="dot"></span></div>` : ''}
+      </div></div>`;
+    const img = document.getElementById('map-img');
+    img.addEventListener('error', () => {
+      if (state.localImages[fl.id]) return;
+      state.failedImages[fl.id] = true; renderMap();
+    }, { once: true });
+
+    const stage = document.getElementById('stage');
+    const vp = document.getElementById('viewport');
+    if (window.Panzoom) {
+      pz = Panzoom(stage, { maxScale: 5, minScale: 1, contain: 'outside', step: 0.4 });
+      vp.addEventListener('wheel', e => { pz.zoomWithWheel(e); }, { passive: false });
+      setZoomEnabled(true);
+    } else {
+      setZoomEnabled(false);
+    }
+    let down = null;
+    vp.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY }; }, true);
+    vp.addEventListener('pointerup', e => {
+      if (!down || !state.admin) return;
+      const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y); down = null;
+      if (moved > 6) return;
+      const r = img.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width * 100, y = (e.clientY - r.top) / r.height * 100;
+      if (x < 0 || x > 100 || y < 0 || y > 100) return;
+      placeDraft(x, y);
+    }, true);
+  }
+
+  function setZoomEnabled(on) {
+    ['zoom-in', 'zoom-out', 'zoom-reset'].forEach(id => { document.getElementById(id).disabled = !on; });
+  }
+
+  function renderFloorList() {
+    const items = DATA.facilities.filter(f => f.floorId === state.floorId);
+    const el = document.getElementById('floor-list');
+    el.innerHTML = `<span class="label">이 층 시설</span>` + (items.length
+      ? items.map(f => `<button type="button" class="chip-btn" data-id="${esc(f.id)}" aria-current="${f.id === state.facilityId}">${esc(f.name)}</button>`).join('')
+      : `<span class="hint">아직 등록된 시설이 없어요.</span>`);
+  }
+
+  function renderPanel() {
+    const el = document.getElementById('panel');
+    const f = facility(state.facilityId);
+    if (!f) { el.innerHTML = `<p class="hint">검색하거나 목록에서 시설을 골라 주세요.</p>`; return; }
+    const fl = floor(f.floorId) || {}; const b = building(f.buildingId) || {};
+    const status = f.verificationStatus || 'unverified';
+    let notice = '';
+    if (!hasPin(f)) notice = `<div class="notice">도면 속 정확한 위치는 아직 확인 전이에요. ${esc(b.name)} ${esc(fl.name)}까지 오신 뒤 현장 안내를 따라 주세요.</div>`;
+    else if (status === 'draft') notice = `<div class="notice">관리자가 임시로 찍은 위치예요. 검증이 끝나면 확정 표시로 바뀌어요.</div>`;
+    el.innerHTML = `
+      <div>
+        <h2>${esc(f.name)}</h2>
+        <div class="loc">${esc(b.name)} · ${esc(fl.name)}${f.roomNumber ? ' · ' + esc(f.roomNumber) + '호' : ''}</div>
+      </div>
+      <span class="status ${esc(status)}">${esc(STATUS[status] || status)}</span>
+      ${f.description ? `<p style="margin:0">${esc(f.description)}</p>` : ''}
+      ${notice}
+      <dl class="facts">
+        <dt>건물</dt><dd>${esc(b.name)}</dd>
+        <dt>층</dt><dd>${esc(fl.name)} (${esc(fl.label)})</dd>
+        <dt>호수</dt><dd>${f.roomNumber ? esc(f.roomNumber) : '없음'}</dd>
+        ${f.aliases && f.aliases.length ? `<dt>다른 이름</dt><dd>${f.aliases.map(esc).join(', ')}</dd>` : ''}
+        <dt>출처</dt><dd>${f.sourceUrl ? `<a href="${esc(f.sourceUrl)}" target="_blank" rel="noopener">${esc(f.sourceUrl.replace(/^https?:\/\/(www\.)?/, ''))}</a>` : '없음'}</dd>
+      </dl>`;
+  }
+
+  function renderAdmin() {
+    document.getElementById('admin').hidden = !state.admin;
+    document.getElementById('admin-toggle').textContent = state.admin ? '관리자 모드 끄기' : '관리자 모드 켜기';
+    const d = state.drafts[state.facilityId];
+    document.getElementById('pick-coords').textContent = d
+      ? `${(facility(state.facilityId) || {}).name} · X ${d.x.toFixed(1)}% · Y ${d.y.toFixed(1)}%`
+      : '선택한 시설의 임시 핀 없음 · 도면을 눌러 찍어 주세요';
+  }
+
+  function renderAll() {
+    renderResults(); renderBuildings(); renderFloors(); renderMap(); renderFloorList(); renderPanel(); renderAdmin();
+  }
+
+  /* ---------- 동작 ---------- */
+  function selectFacility(id) {
+    const f = facility(id); if (!f) return;
+    state.facilityId = id; state.buildingId = f.buildingId; state.floorId = f.floorId;
+    renderAll();
+    if (window.matchMedia('(max-width: 860px)').matches) {
+      const card = document.querySelector('.map-card');
+      const r = card.getBoundingClientRect();
+      if (r.top < 0 || r.top > window.innerHeight * 0.35) {
+        card.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+      }
+    }
+  }
+  function selectBuilding(id) {
+    state.buildingId = id;
+    const f = facility(state.facilityId);
+    const fls = floorsOf(id);
+    state.floorId = (f && f.buildingId === id) ? f.floorId : (fls[0] && fls[0].id);
+    renderAll();
+  }
+  function selectFloor(id) { state.floorId = id; renderAll(); }
+
+  function placeDraft(x, y) {
+    const f = byId(DATA.facilities, state.facilityId);
+    if (!f) return;
+    if (f.floorId !== state.floorId) {
+      document.getElementById('pick-coords').textContent = `${f.name}은(는) ${floor(f.floorId).name} 시설이에요. 해당 층 도면에서 찍어 주세요.`;
+      return;
+    }
+    state.drafts[f.id] = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, floorId: state.floorId, at: new Date().toISOString() };
+    saveDrafts(); renderAll();
+  }
+
+  function exportData() {
+    const out = JSON.parse(JSON.stringify(DATA));
+    out.facilities.forEach(f => {
+      const d = state.drafts[f.id];
+      if (d && f.markerXPercent == null) { f.markerXPercent = d.x; f.markerYPercent = d.y; f.verificationStatus = 'draft'; }
+    });
+    const box = document.getElementById('export-box');
+    box.value = JSON.stringify(out, null, 2);
+    document.getElementById('export-wrap').hidden = false;
+    document.getElementById('copy-msg').textContent = '';
+  }
+
+  document.getElementById('q').addEventListener('input', e => { state.query = e.target.value; renderResults(); });
+  document.getElementById('q').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { const r = search(state.query); if (r[0]) selectFacility(r[0].id); }
+  });
+  document.addEventListener('click', e => {
+    const fBtn = e.target.closest('[data-id]'); if (fBtn) { selectFacility(fBtn.dataset.id); return; }
+    const bBtn = e.target.closest('[data-building]'); if (bBtn) { selectBuilding(bBtn.dataset.building); return; }
+    const flBtn = e.target.closest('[data-floor]'); if (flBtn) { selectFloor(flBtn.dataset.floor); return; }
+  });
+  document.getElementById('zoom-in').addEventListener('click', () => pz && pz.zoomIn());
+  document.getElementById('zoom-out').addEventListener('click', () => pz && pz.zoomOut());
+  document.getElementById('zoom-reset').addEventListener('click', () => pz && pz.reset());
+  document.getElementById('admin-toggle').addEventListener('click', () => { state.admin = !state.admin; renderAll(); });
+  document.getElementById('clear-draft').addEventListener('click', () => { delete state.drafts[state.facilityId]; saveDrafts(); renderAll(); });
+  document.getElementById('local-image').addEventListener('change', e => {
+    const file = e.target.files && e.target.files[0]; if (!file) return;
+    state.localImages[state.floorId] = URL.createObjectURL(file);
+    e.target.value = ''; renderMap();
+  });
+  document.getElementById('export').addEventListener('click', exportData);
+  document.getElementById('copy-export').addEventListener('click', () => {
+    const box = document.getElementById('export-box'); const msg = document.getElementById('copy-msg');
+    const done = () => { msg.textContent = '복사했어요.'; };
+    const fallback = () => { box.focus(); box.select(); msg.textContent = '자동 복사가 안 돼서 전체 선택해 뒀어요. 길게 눌러 복사해 주세요.'; };
+    try { navigator.clipboard.writeText(box.value).then(done, fallback); } catch (err) { fallback(); }
+  });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>

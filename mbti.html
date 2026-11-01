@@ -17,31 +17,26 @@ img { max-width: 100%; }
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap">
 <style>
 /* Layout: pick your type from a 4×4 grid, get one shareable result card. Clay Arch tokens shared with the other 야베스 pages. */
 :root {
-  --bg: #FBF6F2; --surface: #FFFFFF; --sunken: #F5EAE3; --fg: #302C2A; --muted: #766B65; --line: #EADBD2;
-  --accent: #A6523D; --accent-soft: #F1DED5; --accent-ink: #FFFFFF; --warn: #9A5B12; --warn-soft: #F8EBD6; --stage: #F5EAE3;
-  --font-display: "Gowun Dodum", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+  --bg: #F6F3EE; --surface: #FFFFFF; --sunken: #EDE8E1; --fg: #221C19; --muted: #6E625A; --line: #E3DCD3;
+  --accent: #3B2F29; --accent-soft: #EDE8E1; --accent-ink: #FFFFFF; --stage: #EDE8E1;
+  --ok: #3F6B4E; --ok-soft: #E3EDE5; --warn: #8A5A1E; --warn-soft: #F3E9DA;
+  --hero: #EDE8E1; --hero-ink: #221C19; --hero-muted: #6E625A;
+  --card: #3B2F29; --card-ink: #FFFFFF; --card-muted: #CFC5BC;
+  --ink: #2A211D; --blush: #F4C2B6;
+  --font-display: "Noto Serif KR", "Nanum Myeongjo", serif;
   --font-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #1B1614; --surface: #241D1A; --sunken: #2C231F; --fg: #F3EAE4; --muted: #BBAAA0; --line: #3D312B;
-    --accent: #E08A6E; --accent-soft: #3A2620; --accent-ink: #1B1614; --warn: #F0B860; --warn-soft: #362812; --stage: #EADBD1;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #1B1614; --surface: #241D1A; --sunken: #2C231F; --fg: #F3EAE4; --muted: #BBAAA0; --line: #3D312B;
-  --accent: #E08A6E; --accent-soft: #3A2620; --accent-ink: #1B1614; --warn: #F0B860; --warn-soft: #362812; --stage: #EADBD1;
-  color-scheme: dark;
+  --font-mono: "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --radius: 4px;
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
 html, body { background: var(--bg); }
 body {
+  word-break: keep-all;
   color: var(--fg); font-family: var(--font-body); font-size: 15.5px; line-height: 1.65;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
@@ -57,26 +52,26 @@ h1 { font-size: clamp(28px, 6vw, 34px); line-height: 1.2; }
 p { margin: 0; }
 .muted { color: var(--muted); }
 .tags { display: flex; gap: 6px; flex-wrap: wrap; }
-.tag { font-size: 12.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.tag { font-size: 12.5px; font-weight: 600; padding: 3px 10px; border-radius: 2px; background: var(--accent-soft); color: var(--accent); }
 .tag.draft { background: var(--warn-soft); color: var(--warn); }
 
 .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.grid button { border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 12px 0; font-family: var(--font-mono); font-weight: 600; font-size: 15px; letter-spacing: .04em; }
+.grid button { border: 1px solid var(--line); background: var(--surface); border-radius: 2px; padding: 12px 0; font-family: var(--font-mono); font-weight: 600; font-size: 15px; letter-spacing: .04em; }
 .grid button:hover { border-color: var(--accent); }
 .grid button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 
-.result { background: var(--accent-soft); border-radius: 28px 96px 28px 28px; padding: 24px 22px; display: flex; flex-direction: column; gap: 14px; }
+.result { background: var(--accent-soft); border-radius: 2px; padding: 24px 22px; display: flex; flex-direction: column; gap: 14px; }
 .result .type { font-family: var(--font-mono); font-weight: 600; font-size: 14px; letter-spacing: .12em; color: var(--accent); }
 .result .nick-old { font-family: var(--font-display); font-size: clamp(34px, 9vw, 44px); line-height: 1.1; }
 .result .nick { font-family: var(--font-display); font-size: clamp(30px, 8vw, 40px); line-height: 1.15; }
 .people { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .people:has(> :only-child) { grid-template-columns: minmax(0, 1fr); }
 @media (max-width: 420px) { .people { grid-template-columns: minmax(0, 1fr); } }
-.person { background: var(--surface); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.person { background: var(--surface); border-radius: 2px; padding: 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .person b { font-size: 18px; }
 .person .v { font-size: 13px; color: var(--accent); font-weight: 600; margin-top: auto; }
 .result .desc { max-width: 52ch; }
-.friend { background: var(--surface); border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+.friend { background: var(--surface); border-radius: 2px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
 .friend .k, .verse .k { font-size: 12.5px; font-weight: 700; color: var(--muted); }
 .verse { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; font-size: 14.5px; }
 .verse b { font-weight: 700; }
@@ -107,7 +102,7 @@ p { margin: 0; }
 </head>
 <body>
 <div class="wrap">
-  <a class="back-home" href="index.html" style="display:inline-flex;align-items:center;gap:6px;width:fit-content;margin-top:16px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);text-decoration:none;font-size:14px;font-weight:500;">← 가이드 홈</a>
+  <a class="back-home" href="index.html" style="display:inline-flex;align-items:center;gap:6px;width:fit-content;margin-top:16px;padding:8px 14px;border-radius: 2px;border:1px solid var(--line);background:var(--surface);color:var(--fg);text-decoration:none;font-size:14px;font-weight:500;">← 가이드 홈</a>
   <header>
     <span class="eyebrow">야베스 새내기 안내 가이드</span>
     <h1>내 MBTI는 성경 속 누구?</h1>

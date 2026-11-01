@@ -17,27 +17,27 @@ img { max-width: 100%; }
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap">
 <style>
 /* Layout: wayfinding app. Search + list on the left, floor plan with an elevator-style floor panel on the right; stacks to one column on phones. */
 :root {
-  --bg: #FBF6F2; --surface: #FFFFFF; --sunken: #F5EAE3; --fg: #302C2A; --muted: #766B65; --line: #EADBD2; --accent: #A6523D; --accent-soft: #F1DED5; --accent-ink: #FFFFFF; --warn: #9A5B12; --warn-soft: #F8EBD6; --ok: #2F7A4B; --ok-soft: #E1F0E5;
-  --font-display: "Gowun Dodum", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif; --font-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace; --radius: 18px;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #1B1614; --surface: #241D1A; --sunken: #2C231F; --fg: #F3EAE4; --muted: #BBAAA0; --line: #3D312B; --accent: #E08A6E; --accent-soft: #3A2620; --accent-ink: #1B1614; --warn: #F0B860; --warn-soft: #362812; --ok: #7FD39C; --ok-soft: #173023;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #1B1614; --surface: #241D1A; --sunken: #2C231F; --fg: #F3EAE4; --muted: #BBAAA0; --line: #3D312B; --accent: #E08A6E; --accent-soft: #3A2620; --accent-ink: #1B1614; --warn: #F0B860; --warn-soft: #362812; --ok: #7FD39C; --ok-soft: #173023;
-  color-scheme: dark;
+  --bg: #F6F3EE; --surface: #FFFFFF; --sunken: #EDE8E1; --fg: #221C19; --muted: #6E625A; --line: #E3DCD3;
+  --accent: #3B2F29; --accent-soft: #EDE8E1; --accent-ink: #FFFFFF; --stage: #EDE8E1;
+  --ok: #3F6B4E; --ok-soft: #E3EDE5; --warn: #8A5A1E; --warn-soft: #F3E9DA;
+  --hero: #EDE8E1; --hero-ink: #221C19; --hero-muted: #6E625A;
+  --card: #3B2F29; --card-ink: #FFFFFF; --card-muted: #CFC5BC;
+  --ink: #2A211D; --blush: #F4C2B6;
+  --font-display: "Noto Serif KR", "Nanum Myeongjo", serif;
+  --font-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --radius: 4px;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
 html, body { background: var(--bg); }
 body {
+  word-break: keep-all;
   color: var(--fg);
   font-family: var(--font-body);
   font-size: 15px;
@@ -85,25 +85,25 @@ h1 span { color: var(--accent); }
 @media (max-width: 860px) { .results { max-height: 36vh; } }
 .result {
   width: 100%; text-align: left; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; align-items: center;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 2px; padding: 10px 12px;
 }
 .result:hover { border-color: var(--accent); }
 .result[aria-current="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .floor-badge {
-  width: 48px; height: 48px; border-radius: 10px; display: grid; place-items: center;
+  width: 48px; height: 48px; border-radius: 2px; display: grid; place-items: center;
   background: var(--sunken); font-family: var(--font-mono); font-weight: 600; font-size: 15px;
 }
 .result[aria-current="true"] .floor-badge { background: var(--accent); color: var(--accent-ink); }
 .result .name { font-weight: 600; display: block; }
 .result .where { font-size: 13px; color: var(--muted); display: block; }
-.empty { padding: 20px; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 12px; font-size: 14px; }
+.empty { padding: 20px; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 2px; font-size: 14px; }
 
 /* Map column */
 .map-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .selector { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
-.buildings { display: inline-flex; background: var(--sunken); padding: 4px; border-radius: 999px; gap: 2px; }
+.buildings { display: inline-flex; background: var(--sunken); padding: 4px; border-radius: 2px; gap: 2px; }
 .buildings button {
-  border: 0; background: transparent; padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px; color: var(--muted);
+  border: 0; background: transparent; padding: 8px 16px; border-radius: 2px; font-weight: 600; font-size: 14px; color: var(--muted);
 }
 .buildings button[aria-pressed="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(10, 20, 50, .12); }
 
@@ -123,7 +123,7 @@ h1 span { color: var(--accent); }
 .map-title { font-weight: 600; }
 .map-title small { color: var(--muted); font-weight: 400; margin-left: 6px; }
 .zoom { display: flex; gap: 6px; }
-.zoom button { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; }
+.zoom button { width: 34px; height: 34px; border-radius: 2px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; }
 .zoom button:disabled { opacity: .4; cursor: default; }
 
 .viewport {
@@ -156,20 +156,20 @@ h1 span { color: var(--accent); }
 .fallback .floor-big { font-family: var(--font-mono); font-size: 44px; font-weight: 600; color: var(--accent); line-height: 1; }
 .fallback p { margin: 0; max-width: 40ch; color: var(--muted); font-size: 14px; }
 .fallback .btn-link {
-  display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 10px;
+  display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 2px;
   background: var(--accent); color: var(--accent-ink); text-decoration: none; font-weight: 600; font-size: 14px;
 }
 
 .floor-list { padding: 12px 14px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .floor-list .label { font-size: 12px; color: var(--muted); font-weight: 600; margin-right: 4px; }
-.chip-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
+.chip-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 2px; padding: 4px 12px; font-size: 13px; }
 .chip-btn[aria-current="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 
 /* Info panel */
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 14px; }
 .panel h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 26px; line-height: 1.25; }
 .panel .loc { font-size: 14px; color: var(--muted); margin-top: 2px; }
-.status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; width: fit-content; }
+.status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 2px; font-size: 12.5px; font-weight: 600; width: fit-content; }
 .status.verified { background: var(--ok-soft); color: var(--ok); }
 .status.floor-only, .status.unverified { background: var(--warn-soft); color: var(--warn); }
 .status.draft { background: var(--warn-soft); color: var(--warn); }
@@ -177,17 +177,17 @@ h1 span { color: var(--accent); }
 dl.facts { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 16px; font-size: 14px; }
 dl.facts dt { color: var(--muted); }
 dl.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-.notice { font-size: 13.5px; background: var(--warn-soft); color: var(--fg); padding: 10px 12px; border-radius: 10px; }
+.notice { font-size: 13.5px; background: var(--warn-soft); color: var(--fg); padding: 10px 12px; border-radius: 2px; }
 
 /* Admin */
 .admin { background: var(--surface); border: 1px dashed var(--warn); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 .admin h3 { margin: 0; font-size: 15px; }
 .admin p { margin: 0; font-size: 13.5px; color: var(--muted); }
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 12px; font-size: 14px; font-weight: 500; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 2px; padding: 8px 12px; font-size: 14px; font-weight: 500; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
 .coords { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
-textarea#export-box { width: 100%; min-height: 180px; font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: var(--sunken); }
+textarea#export-box { width: 100%; min-height: 180px; font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); border-radius: 2px; padding: 10px; background: var(--sunken); }
 
 footer.foot { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; font-size: 12.5px; color: var(--muted); }
 footer.foot button { background: none; border: 0; color: var(--muted); text-decoration: underline; padding: 0; font-size: 12.5px; }
@@ -715,13 +715,12 @@ footer.foot button { background: none; border: 0; color: var(--muted); text-deco
    "name": "교회 사무실",
    "aliases": [
     "사무실",
-    "본당 사무실",
-    "장학회"
+    "본당 사무실"
    ],
    "buildingId": "main",
    "floorId": "main-1f",
    "roomNumber": null,
-   "description": "교회 사무실이에요. 수영로교회장학회 서류 접수처도 이곳이었어요.",
+   "description": "교회 사무실이에요.",
    "mapImage": "main-1f.jpg",
    "markerXPercent": 49.1,
    "markerYPercent": 17.6,
@@ -971,7 +970,7 @@ footer.foot button { background: none; border: 0; color: var(--muted); text-deco
 </script>
 
 <div class="wrap">
-  <a class="back-home" href="index.html" style="display:inline-flex;align-items:center;gap:6px;width:fit-content;margin-top:16px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);text-decoration:none;font-size:14px;font-weight:500;">← 가이드 홈</a>
+  <a class="back-home" href="index.html" style="display:inline-flex;align-items:center;gap:6px;width:fit-content;margin-top:16px;padding:8px 14px;border-radius: 2px;border:1px solid var(--line);background:var(--surface);color:var(--fg);text-decoration:none;font-size:14px;font-weight:500;">← 가이드 홈</a>
   <header class="top">
     <div class="brand">
       <span class="eyebrow">수영로교회 청년1팀 JABEZ</span>
